@@ -2,8 +2,8 @@
 #define MPAGSCIPHER_PLAYFAIRCIPHER_HPP
 
 #include <string>
+#include <map>
 #include "CipherMode.hpp"
-
 /**
  * \file PlayfairCipher.hpp
  * \brief Contains the declaration of the PlayfairCipher class
@@ -40,6 +40,12 @@ class PlayfairCipher {
     
     /// The cipher key
     std::string key_{""};
+
+    /// Coordinates of each letter
+    std::map<char, std::pair<int, int>> coordMap_;
+
+    /// Cipher key map
+    std::map<std::pair<int, int>, char> cipherMap_;
 };
 
 #endif // MPAGSCIPHER_PLAYFAIRCIPHER_HPP

@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <map>
 
 #include "CipherMode.hpp"
 #include "PlayfairCipher.hpp"
@@ -31,10 +32,38 @@ void PlayfairCipher::setKey(const std::string& key){
                    [] (char c) {return (c == 'J') ? 'I' : c;});
     
     // Remove duplicated letters
-
+    std::string encounteredLetters{""};
+    auto checkEncountered = [&] (char c) {
+        // Check if the char has not been encountered
+        // If it has, then add it to the encountered letters
+        // and return false since we want to keep it
+        if (encounteredLetters.find(c) == std::string::npos){
+            encounteredLetters += c;
+            return false;
+        }
+        // Otherwise return true
+        else {
+            return true;
+        }
+    };
+    key_.erase(std::remove_if(key_.begin(), key_.end(), checkEncountered), key_.end());
+    
+    // TODO: Changne ints in the coords to size_t
+    // Change this to a for loop and set up both in the same loop
+    // Remove the +1
     // Store the coords of each letter
+    int count{0};
+    for (char c : key_) {
+        int x = count / 5 + 1; 
+        int y = count % 5 + 1;
+        coordMap_[c] = std::make_pair(x, y);
+        count++;
+    }
 
     // Store the playfair cipher key map
+    for (auto a: coordMap_) {
+        cipherMap_[a.second] = a.first;
+    }
 }
 
 std::string PlayfairCipher::applyCipher(const std::string& inputText, const CipherMode cipherMode) const {
