@@ -1,12 +1,13 @@
 #include <string>
 #include <iostream>
+#include <algorithm>
 
 #include "CipherMode.hpp"
 #include "PlayfairCipher.hpp"
 
 PlayfairCipher::PlayfairCipher(const std::string& key){
     // Call setKey
-    PlayfairCipher::setKey(key);
+    this->setKey(key);
 }
 
 void PlayfairCipher::setKey(const std::string& key){
@@ -14,7 +15,11 @@ void PlayfairCipher::setKey(const std::string& key){
     // Store the original key
     key_ = key;
     
+    // Append the alphabet
+    key_ += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
     // Make sure the key is upper case
+    std::transform(key_.begin(), key_.end(), key_.begin(), ::toupper);
 
     // Remove non-alpha characters
 
