@@ -22,9 +22,14 @@ void PlayfairCipher::setKey(const std::string& key){
     std::transform(key_.begin(), key_.end(), key_.begin(), ::toupper);
 
     // Remove non-alpha characters
-
+    key_.erase(std::remove_if(key_.begin(), key_.end(), 
+                              [] (char c) {return !(std::isalpha(c));}), 
+               key_.end());
+    
     // Change J -> I
-
+    std::transform(key_.begin(), key_.end(), key_.begin(),
+                   [] (char c) {return (c == 'J') ? 'I' : c;});
+    
     // Remove duplicated letters
 
     // Store the coords of each letter
