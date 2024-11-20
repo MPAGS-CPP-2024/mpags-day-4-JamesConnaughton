@@ -1,5 +1,4 @@
 #include <string>
-#include <iostream>
 #include <algorithm>
 #include <map>
 
@@ -48,40 +47,82 @@ void PlayfairCipher::setKey(const std::string& key){
     };
     key_.erase(std::remove_if(key_.begin(), key_.end(), checkEncountered), key_.end());
     
-    // TODO: Changne ints in the coords to size_t
-    // Change this to a for loop and set up both in the same loop
-    // Remove the +1
     // Store the coords of each letter
-    int count{0};
-    for (char c : key_) {
-        int x = count / 5 + 1; 
-        int y = count % 5 + 1;
-        coordMap_[c] = std::make_pair(x, y);
-        count++;
-    }
-
     // Store the playfair cipher key map
-    for (auto a: coordMap_) {
-        cipherMap_[a.second] = a.first;
+    std::size_t count{0};
+    for (char c : key_) {
+        std::size_t x = count / 5; 
+        std::size_t y = count % 5;
+        coordMap_[c] = std::make_pair(x, y);
+        cipherMap_[std::make_pair(x, y)] = c;
+        count++;
     }
 }
 
 std::string PlayfairCipher::applyCipher(const std::string& inputText, const CipherMode cipherMode) const {
-    std::cout << "We are running the cipher with key " << key_ << std::endl;
+    
+    std::string cipherText = inputText;
+    
     // Change J -> I
+    std::transform(cipherText.begin(), cipherText.end(), cipherText.begin(),
+                    [] (char c) {return (c == 'J') ? 'I' : c;});
 
     // If repeated chars in a digraph add an X or Q if XX
-
-    // If the siez of input is odd, add a trailing Z
-
+    {
+    auto it{cipherText.begin()};
+    while (it != cipherText.end()){
+        if (*it == *(it - 1)) {
+            char insertChar = 'X';
+            if (*it == 'X') {
+                insertChar = 'Q';
+            }
+            it = cipherText.insert(it, insertChar);
+            ++it;
+        }
+        ++it;
+    }
+    }
+    // If the size of input is odd, add a trailing Z
+    if (cipherText.size() % 2 == 1) {
+        cipherText += 'Z';
+    }
+    std::string outputText{""};
     // Loop over the input in Digraphs
+    for (auto it{cipherText.begin()}; it != cipherText.end(); std::advance(it, 2)) {
+        // Find the coords in the grid for each digraph
+        std::pair<int, int> coord1 = (*coordMap_.find(*it)).second;
+        std::pair<int, int> coord2 = (*coordMap_.find(*(it + 1))).second;
 
-    //   - Find the coords in the grid for each digraph
+        std::pair<int, int> newCoord1{coord1};
+        std::pair<int, int> newCoord2{coord2};
 
-    //   - Apply the rules to the coords to get 'new' coords
+        // If encrypting we shift by 1 
+        // If decrypting we shift by 4 (= 1 in other direction)
+        std::size_t shift{1};
+        if (cipherMode == CipherMode::Decrypt){
+            shift = 4;
+        }
+        
+        // If in the same row, pick the letters to the right
+        if (coord1.first == coord2.first) {
+            newCoord1.second = (coord1.second + shift) % 5;
+            newCoord2.second = (coord2.second + shift) % 5;
+        }
+        // If in the same column, pick the letters beneath
+        else if (coord1.second == coord2.second) {
+            newCoord1.first = (coord1.first + shift) % 5;
+            newCoord2.first = (coord2.first + shift) % 5;
+        }
+        // If forming a rectangle, exchange the columns
+        else {
+            newCoord1.second = coord2.second;
+            newCoord2.second = coord1.second;
+        }
+        
+        outputText += (*cipherMap_.find(newCoord1)).second;
+        outputText += (*cipherMap_.find(newCoord2)).second;
+    }
 
-    //   - Find the letter associated with the new coords
-
-    // return the text
-    return inputText;
+    // Return the text
+    return outputText;
 }
